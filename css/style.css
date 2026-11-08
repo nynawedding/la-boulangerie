@@ -566,3 +566,23 @@ input, select, textarea, button { font-size: max(16px, 1em); } /* évite le zoom
   .nav.is-open { background: #141311; }
   .nav__menu a.btn { display: flex; justify-content: center; margin-top: 8px; padding: 14px !important; }
 }
+
+/* ---------- Correctif clignotement du menu sur mobile ----------
+   Le flou (backdrop-filter) est posé sur un pseudo-élément et non plus sur .nav :
+   sur .nav, il faisait du menu plein écran (position: fixed) un enfant positionné
+   par rapport à la barre, qui sautait à chaque ouverture ou fermeture. */
+.nav { -webkit-tap-highlight-color: transparent; }
+.nav.is-solid { background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.nav::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: rgba(20, 19, 17, .9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  opacity: 0; transition: opacity .35s;
+}
+.nav.is-solid::before { opacity: 1; }
+.page-plain .nav { background: var(--night); }
+@media (max-width: 1060px) {
+  .nav { transition: transform .45s var(--ease); }
+  .nav.is-open { background: #141311; }
+  .nav.is-open::before { opacity: 0; transition: none; }
+  .nav__toggle, .sub-toggle { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+}

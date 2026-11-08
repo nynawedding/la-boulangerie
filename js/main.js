@@ -12,18 +12,27 @@
   const toTop = $('.to-top');
   let lastY = window.scrollY;
 
+  let ticking = false;
   const onScroll = () => {
-    const y = window.scrollY;
-    nav.classList.toggle('is-solid', y > 40 || document.body.classList.contains('page-plain'));
-    if (!nav.classList.contains('is-open')) nav.classList.toggle('is-hidden', y > 400 && y > lastY + 4);
-    if (y < lastY - 4) nav.classList.remove('is-hidden');
-    lastY = y;
+    ticking = false;
     const max = document.documentElement.scrollHeight - innerHeight;
+    // iPhone : on ignore le rebond (scrollY négatif ou au-delà du bas de page)
+    const y = Math.min(Math.max(window.scrollY, 0), Math.max(max, 0));
+    nav.classList.toggle('is-solid', y > 40 || document.body.classList.contains('page-plain'));
+    const dy = y - lastY;
+    if (nav.classList.contains('is-open')) {
+      lastY = y;
+    } else if (Math.abs(dy) > 10) {
+      // seuil de 10 px : la barre d'adresse mobile qui se replie ne fait plus clignoter le menu
+      nav.classList.toggle('is-hidden', dy > 0 && y > 400);
+      lastY = y;
+    }
+    if (y <= 400) nav.classList.remove('is-hidden');
     if (progress) progress.style.setProperty('--p', max > 0 ? (y / max).toFixed(4) : 0);
     if (toTop) toTop.classList.toggle('is-visible', y > 700);
   };
   onScroll();
-  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
 
   const closeMenu = () => {
     nav.classList.remove('is-open');
